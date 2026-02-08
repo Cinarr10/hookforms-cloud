@@ -25,34 +25,44 @@ publicWebhooks.all('/hooks/:slug', async (c) => {
     return c.json({ error: { code: 404, message: 'Inbox not found' } }, 404);
   }
 
-  // Parse body
+  // Parse body — check content-type first to avoid consuming the stream
   let body: Record<string, unknown> | null = null;
   const contentType = c.req.header('content-type') || '';
 
-  try {
-    body = await c.req.json();
-  } catch {
-    if (
-      contentType.includes('application/x-www-form-urlencoded') ||
-      contentType.includes('multipart/form-data')
-    ) {
-      try {
-        const formData = await c.req.formData();
-        body = {};
-        for (const [key, val] of formData.entries()) {
-          if (typeof val === 'string') body[key] = val;
-        }
-      } catch {
-        /* fall through */
+  if (
+    contentType.includes('application/x-www-form-urlencoded') ||
+    contentType.includes('multipart/form-data')
+  ) {
+    try {
+      const formData = await c.req.formData();
+      body = {};
+      for (const [key, val] of formData.entries()) {
+        if (typeof val === 'string') body[key] = val;
       }
+    } catch {
+      /* fall through to raw text */
     }
-    if (!body) {
-      try {
-        const raw = await c.req.text();
-        if (raw) body = { raw };
-      } catch {
-        /* empty */
-      }
+  } else if (contentType.includes('application/json')) {
+    try {
+      body = await c.req.json();
+    } catch {
+      /* fall through to raw text */
+    }
+  } else {
+    // Unknown content-type: try JSON first, then raw text
+    try {
+      body = await c.req.json();
+    } catch {
+      /* fall through to raw text */
+    }
+  }
+
+  if (!body) {
+    try {
+      const raw = await c.req.text();
+      if (raw) body = { raw };
+    } catch {
+      /* empty */
     }
   }
 
