@@ -1,0 +1,66 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hookforms",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-02-08",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // D1 database for inboxes, events, API keys
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hookforms-db",
+      "database_id": ""
+      // After deploy: wrangler d1 create hookforms-db
+      // Then paste the database_id here
+    }
+  ],
+
+  // KV namespace for rate limiting
+  "kv_namespaces": [
+    {
+      "binding": "RATE_LIMIT",
+      "id": ""
+      // After deploy: wrangler kv namespace create RATE_LIMIT
+      // Then paste the id here
+    }
+  ],
+
+  // R2 bucket for Gmail OAuth token persistence
+  "r2_buckets": [
+    {
+      "binding": "STORAGE",
+      "bucket_name": "hookforms-storage"
+    }
+  ],
+
+  // Queue for async email sending
+  "queues": {
+    "producers": [
+      {
+        "binding": "EMAIL_QUEUE",
+        "queue": "hookforms-emails"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "hookforms-emails",
+        "max_batch_size": 5,
+        "max_retries": 3,
+        "dead_letter_queue": "hookforms-emails-dlq"
+      }
+    ]
+  },
+
+  // Daily cleanup of old events (3am UTC)
+  "triggers": {
+    "crons": ["0 3 * * *"]
+  }
+
+  // Required secrets (set via wrangler secret put):
+  // ADMIN_API_KEY        — master admin key
+  // GMAIL_CLIENT_ID      — Google OAuth client ID
+  // GMAIL_CLIENT_SECRET  — Google OAuth client secret
+  // GMAIL_REFRESH_TOKEN  — OAuth refresh token (from gmail_auth script)
+  // GMAIL_SENDER_EMAIL   — the Gmail address to send from
+}
