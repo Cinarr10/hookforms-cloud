@@ -104,14 +104,55 @@ publicWebhooks.all('/hooks/:slug', async (c) => {
 
   // Forward to URL (fire-and-forget)
   if (inbox.forward_url && body) {
+    const isDiscord = inbox.forward_url.includes('discord.com/api/webhooks');
+    const isSlack = inbox.forward_url.includes('hooks.slack.com/');
+
+    let forwardBody: string;
+    let forwardMethod = 'POST';
+
+    if (isDiscord) {
+      // Format as Discord embed
+      const fields = Object.entries(body)
+        .filter(([k, v]) => v && k !== 'cf-turnstile-response')
+        .map(([k, v]) => ({
+          name: k.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+          value: String(v).substring(0, 1024),
+          inline: String(v).length < 50,
+        }));
+      forwardBody = JSON.stringify({
+        embeds: [{
+          title: `${inbox.email_subject_prefix || `[${slug}]`} New Submission`,
+          color: 0xd4a843,
+          fields,
+          footer: { text: `hookforms/hooks/${slug}` },
+          timestamp: new Date().toISOString(),
+        }],
+      });
+    } else if (isSlack) {
+      // Format as Slack message
+      const lines = Object.entries(body)
+        .filter(([k, v]) => v && k !== 'cf-turnstile-response')
+        .map(([k, v]) => `*${k.replace(/_/g, ' ')}:* ${v}`);
+      forwardBody = JSON.stringify({
+        text: `${inbox.email_subject_prefix || `[${slug}]`} New Submission`,
+        blocks: [{
+          type: 'section',
+          text: { type: 'mrkdwn', text: lines.join('\n') },
+        }],
+      });
+    } else {
+      forwardBody = JSON.stringify(body);
+      forwardMethod = c.req.method;
+    }
+
     c.executionCtx.waitUntil(
       fetch(inbox.forward_url, {
-        method: c.req.method,
+        method: forwardMethod,
         headers: {
           'Content-Type': 'application/json',
           'X-Forwarded-From': `hookforms/hooks/${slug}`,
         },
-        body: JSON.stringify(body),
+        body: forwardBody,
       }).catch(() => {}),
     );
   }
