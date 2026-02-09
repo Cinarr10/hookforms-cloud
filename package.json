@@ -10,7 +10,7 @@
     "types": "wrangler types",
     "db:migrate": "wrangler d1 migrations apply hookforms-db --remote",
     "db:migrate:local": "wrangler d1 migrations apply hookforms-db --local",
-    "gmail:upload": "node scripts/upload-gmail-token.mjs"
+    "gmail:upload": "bun scripts/upload-gmail-token.mjs"
   },
   "dependencies": {
     "hono": "^4.11.6"

@@ -33,21 +33,21 @@ Click the button above, or:
 ```bash
 git clone https://github.com/h1n054ur/hookforms-cloud.git
 cd hookforms-cloud
-npm install
+bun install
 
 # Create resources
-npx wrangler d1 create hookforms-db
-npx wrangler kv namespace create RATE_LIMIT
+bunx wrangler d1 create hookforms-db
+bunx wrangler kv namespace create RATE_LIMIT
 # Paste the IDs into wrangler.jsonc
 
 # Set admin key
-npx wrangler secret put ADMIN_API_KEY
+bunx wrangler secret put ADMIN_API_KEY
 
 # Deploy
-npm run deploy
+bun run deploy
 
 # Run migrations
-npm run db:migrate
+bun run db:migrate
 ```
 
 ### Gmail Setup
@@ -57,10 +57,10 @@ npm run db:migrate
 3. Upload secrets:
 
 ```bash
-npx wrangler secret put GMAIL_CLIENT_ID
-npx wrangler secret put GMAIL_CLIENT_SECRET
-npx wrangler secret put GMAIL_REFRESH_TOKEN
-npx wrangler secret put GMAIL_SENDER_EMAIL
+bunx wrangler secret put GMAIL_CLIENT_ID
+bunx wrangler secret put GMAIL_CLIENT_SECRET
+bunx wrangler secret put GMAIL_REFRESH_TOKEN
+bunx wrangler secret put GMAIL_SENDER_EMAIL
 ```
 
 ## Usage
