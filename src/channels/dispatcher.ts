@@ -138,6 +138,22 @@ export async function dispatchNotifications(
         }
 
         case 'email': {
+          // Rate limit: max 10 emails per inbox per 10 minutes
+          const rateKey = `channel_email_rate:${inbox.id}`;
+          try {
+            const current = await env.RATE_LIMIT.get(rateKey);
+            const count = current ? parseInt(current, 10) : 0;
+            if (count >= 10) {
+              console.warn(`Email rate limit hit for inbox ${inbox.slug}`);
+              break;
+            }
+            executionCtx.waitUntil(
+              env.RATE_LIMIT.put(rateKey, String(count + 1), { expirationTtl: 600 }),
+            );
+          } catch {
+            // KV unavailable — allow through
+          }
+
           const emailPayload = buildEmailPayload(config as EmailChannelConfig);
           const htmlBody = buildEmailHtml(context.slug, context.body, context.senderName);
 

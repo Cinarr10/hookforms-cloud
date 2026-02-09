@@ -100,6 +100,45 @@ function requireFields(config: Record<string, unknown>, fields: string[]): Valid
   return { valid: true };
 }
 
+/**
+ * Check if a URL points to a blocked destination (SSRF protection).
+ */
+function isBlockedUrl(urlStr: string): boolean {
+  try {
+    const url = new URL(urlStr);
+    const hostname = url.hostname.toLowerCase();
+
+    // Block localhost variants
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '[::1]') {
+      return true;
+    }
+
+    // Block common metadata endpoints
+    if (hostname === '169.254.169.254' || hostname === 'metadata.google.internal') {
+      return true;
+    }
+
+    // Block private IP ranges (simple pattern match)
+    if (/^10\./.test(hostname) || /^172\.(1[6-9]|2\d|3[01])\./.test(hostname) || /^192\.168\./.test(hostname)) {
+      return true;
+    }
+
+    // Block 0.0.0.0
+    if (hostname === '0.0.0.0') {
+      return true;
+    }
+
+    // Block link-local
+    if (/^169\.254\./.test(hostname) || /^fe80:/i.test(hostname)) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    return true;
+  }
+}
+
 function validateUrl(value: unknown, fieldName: string): ValidationResult | null {
   if (typeof value !== 'string' || !value) {
     return { valid: false, error: `Missing required field: ${fieldName}` };
@@ -111,6 +150,9 @@ function validateUrl(value: unknown, fieldName: string): ValidationResult | null
     }
   } catch {
     return { valid: false, error: `${fieldName} is not a valid URL` };
+  }
+  if (isBlockedUrl(value)) {
+    return { valid: false, error: `${fieldName} points to a blocked destination` };
   }
   return null; // no error
 }

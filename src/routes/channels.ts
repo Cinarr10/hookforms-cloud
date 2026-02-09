@@ -10,6 +10,22 @@ const VALID_CHANNEL_TYPES: ChannelType[] = [
   'email', 'discord', 'slack', 'teams', 'telegram', 'ntfy', 'webhook',
 ];
 
+function redactConfig(config: Record<string, unknown>): Record<string, unknown> {
+  const sensitiveKeys = new Set([
+    'webhook_url', 'url', 'bot_url', 'api_key', 'client_id',
+    'client_secret', 'refresh_token', 'password',
+  ]);
+  const redacted: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(config)) {
+    if (sensitiveKeys.has(key) && typeof value === 'string' && value.length > 8) {
+      redacted[key] = value.slice(0, 4) + '***' + value.slice(-4);
+    } else {
+      redacted[key] = value;
+    }
+  }
+  return redacted;
+}
+
 // ---------------------------------------------------------------------------
 // Channel CRUD (nested under /inboxes/:slug/channels)
 // ---------------------------------------------------------------------------
@@ -97,7 +113,7 @@ channels.get('/inboxes/:slug/channels', requireScope('webhooks'), async (c) => {
 
   const items = (results.results || []).map((ch) => ({
     ...ch,
-    config: JSON.parse(ch.config),
+    config: redactConfig(JSON.parse(ch.config)),
   }));
 
   return c.json({ data: items });
@@ -232,7 +248,7 @@ channels.get('/config/email-provider', requireScope('webhooks'), async (c) => {
   return c.json({
     data: {
       ...provider,
-      config: JSON.parse(provider.config as string),
+      config: redactConfig(JSON.parse(provider.config as string)),
     },
   });
 });

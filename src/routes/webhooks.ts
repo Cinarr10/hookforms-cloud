@@ -198,6 +198,33 @@ publicWebhooks.all('/hooks/:slug', async (c) => {
   return c.json({ status: 'received', event_id: eventId });
 });
 
+publicWebhooks.get('/demo/events', async (c) => {
+  const inbox = await c.env.DB.prepare(
+    'SELECT id FROM webhook_inboxes WHERE slug = ? AND is_active = 1',
+  )
+    .bind('demo')
+    .first<{ id: string }>();
+
+  if (!inbox) {
+    return c.json({ data: [] });
+  }
+
+  const results = await c.env.DB.prepare(
+    'SELECT id, method, body, received_at FROM webhook_events WHERE inbox_id = ? ORDER BY received_at DESC LIMIT 5',
+  )
+    .bind(inbox.id)
+    .all();
+
+  const items = (results.results || []).map((e: Record<string, unknown>) => ({
+    id: e.id,
+    method: e.method,
+    body: e.body ? JSON.parse(e.body as string) : null,
+    received_at: e.received_at,
+  }));
+
+  return c.json({ data: items });
+});
+
 // ---------------------------------------------------------------------------
 // Authenticated: manage inboxes
 // ---------------------------------------------------------------------------
