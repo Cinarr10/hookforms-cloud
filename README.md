@@ -1,6 +1,10 @@
-# HookForms Cloud
+<p align="center">
+  <img src="logo.png" alt="HookForms Cloud" width="120">
+</p>
 
-One-click deployable webhook inbox with Gmail email forwarding — runs entirely on Cloudflare Workers. No servers, no Docker, no VPS needed.
+<h1 align="center">HookForms Cloud</h1>
+
+<p align="center">One-click deployable webhook inbox with Gmail email forwarding — runs entirely on Cloudflare Workers. No servers, no Docker, no VPS needed.</p>
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/h1n054ur/hookforms-cloud)
 
