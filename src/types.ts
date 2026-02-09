@@ -50,6 +50,8 @@ export interface EmailJob {
   subject: string;
   body: string;
   sender_name?: string;
+  /** Inbox ID for provider resolution. If absent, falls back to env Gmail. */
+  inbox_id?: string;
 }
 
 export type ChannelType = 'email' | 'discord' | 'slack' | 'teams' | 'telegram' | 'ntfy' | 'webhook';

@@ -3,6 +3,7 @@ import type { Env, Inbox } from '../types';
 import { requireScope } from '../middleware/auth';
 import { verifyTurnstile } from '../services/turnstile';
 import { buildEmailHtml } from '../services/email-template';
+import { dispatchNotifications } from '../channels/dispatcher';
 
 const webhooks = new Hono<{ Bindings: Env }>();
 
@@ -102,79 +103,95 @@ publicWebhooks.all('/hooks/:slug', async (c) => {
     )
     .run();
 
-  // Forward to URL (fire-and-forget)
-  if (inbox.forward_url && body) {
-    const isDiscord = inbox.forward_url.includes('discord.com/api/webhooks');
-    const isSlack = inbox.forward_url.includes('hooks.slack.com/');
+  // Dispatch notifications via channels or legacy fields
+  if (body) {
+    // Check if this inbox has any notification channel rows
+    const channelCount = await c.env.DB.prepare(
+      'SELECT COUNT(*) as cnt FROM notification_channels WHERE inbox_id = ? AND is_active = 1',
+    )
+      .bind(inbox.id)
+      .first<{ cnt: number }>();
 
-    let forwardBody: string;
-    let forwardMethod = 'POST';
-
-    if (isDiscord) {
-      // Format as Discord embed
-      const fields = Object.entries(body)
-        .filter(([k, v]) => v && k !== 'cf-turnstile-response')
-        .map(([k, v]) => ({
-          name: k.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-          value: String(v).substring(0, 1024),
-          inline: String(v).length < 50,
-        }));
-      forwardBody = JSON.stringify({
-        embeds: [{
-          title: `${inbox.email_subject_prefix || `[${slug}]`} New Submission`,
-          color: 0xd4a843,
-          fields,
-          footer: { text: `hookforms/hooks/${slug}` },
-          timestamp: new Date().toISOString(),
-        }],
-      });
-    } else if (isSlack) {
-      // Format as Slack message
-      const lines = Object.entries(body)
-        .filter(([k, v]) => v && k !== 'cf-turnstile-response')
-        .map(([k, v]) => `*${k.replace(/_/g, ' ')}:* ${v}`);
-      forwardBody = JSON.stringify({
-        text: `${inbox.email_subject_prefix || `[${slug}]`} New Submission`,
-        blocks: [{
-          type: 'section',
-          text: { type: 'mrkdwn', text: lines.join('\n') },
-        }],
-      });
-    } else {
-      forwardBody = JSON.stringify(body);
-      forwardMethod = c.req.method;
-    }
-
-    c.executionCtx.waitUntil(
-      fetch(inbox.forward_url, {
-        method: forwardMethod,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Forwarded-From': `hookforms/hooks/${slug}`,
-        },
-        body: forwardBody,
-      }).catch(() => {}),
-    );
-  }
-
-  // Email notification via queue
-  if (inbox.notify_email && body) {
-    const prefix = inbox.email_subject_prefix || `[${slug}]`;
-    const name = String(body.name || 'Unknown');
-    const subjectDetail = name !== 'Unknown' ? `from ${name}` : 'New Submission';
-    const htmlBody = buildEmailHtml(slug, body, inbox.sender_name ?? undefined);
-
-    const recipients = inbox.notify_email.split(',').map((e: string) => e.trim()).filter(Boolean);
-
-    for (const to of recipients) {
+    if (channelCount && channelCount.cnt > 0) {
+      // Use the new channel dispatcher (handles all channel types including email)
       c.executionCtx.waitUntil(
-        c.env.EMAIL_QUEUE.send({
-          to,
-          subject: `${prefix} ${subjectDetail}`,
-          body: htmlBody,
-          sender_name: inbox.sender_name ?? undefined,
+        dispatchNotifications(inbox, body, c.executionCtx, c.env).catch((err) => {
+          console.error('Notification dispatch failed:', err);
         }),
       );
+    } else {
+      // Legacy: forward_url + notify_email (backward compat for inboxes without channel rows)
+      if (inbox.forward_url) {
+        const isDiscord = inbox.forward_url.includes('discord.com/api/webhooks');
+        const isSlack = inbox.forward_url.includes('hooks.slack.com/');
+
+        let forwardBody: string;
+        let forwardMethod = 'POST';
+
+        if (isDiscord) {
+          const fields = Object.entries(body)
+            .filter(([k, v]) => v && k !== 'cf-turnstile-response')
+            .map(([k, v]) => ({
+              name: k.replace(/_/g, ' ').replace(/\b\w/g, (ch: string) => ch.toUpperCase()),
+              value: String(v).substring(0, 1024),
+              inline: String(v).length < 50,
+            }));
+          forwardBody = JSON.stringify({
+            embeds: [{
+              title: `${inbox.email_subject_prefix || `[${slug}]`} New Submission`,
+              color: 0xd4a843,
+              fields,
+              footer: { text: `hookforms/hooks/${slug}` },
+              timestamp: new Date().toISOString(),
+            }],
+          });
+        } else if (isSlack) {
+          const lines = Object.entries(body)
+            .filter(([k, v]) => v && k !== 'cf-turnstile-response')
+            .map(([k, v]) => `*${k.replace(/_/g, ' ')}:* ${v}`);
+          forwardBody = JSON.stringify({
+            text: `${inbox.email_subject_prefix || `[${slug}]`} New Submission`,
+            blocks: [{
+              type: 'section',
+              text: { type: 'mrkdwn', text: lines.join('\n') },
+            }],
+          });
+        } else {
+          forwardBody = JSON.stringify(body);
+          forwardMethod = c.req.method;
+        }
+
+        c.executionCtx.waitUntil(
+          fetch(inbox.forward_url, {
+            method: forwardMethod,
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Forwarded-From': `hookforms/hooks/${slug}`,
+            },
+            body: forwardBody,
+          }).catch(() => {}),
+        );
+      }
+
+      if (inbox.notify_email) {
+        const prefix = inbox.email_subject_prefix || `[${slug}]`;
+        const name = String(body.name || 'Unknown');
+        const subjectDetail = name !== 'Unknown' ? `from ${name}` : 'New Submission';
+        const htmlBody = buildEmailHtml(slug, body, inbox.sender_name ?? undefined);
+
+        const recipients = inbox.notify_email.split(',').map((e: string) => e.trim()).filter(Boolean);
+
+        for (const to of recipients) {
+          c.executionCtx.waitUntil(
+            c.env.EMAIL_QUEUE.send({
+              to,
+              subject: `${prefix} ${subjectDetail}`,
+              body: htmlBody,
+              sender_name: inbox.sender_name ?? undefined,
+            }),
+          );
+        }
+      }
     }
   }
 

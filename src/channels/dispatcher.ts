@@ -145,7 +145,7 @@ export async function dispatchNotifications(
           const name = String(body.name || 'Unknown');
           const subjectDetail = name !== 'Unknown' ? `from ${name}` : 'New Submission';
 
-          // Queue email for each recipient
+          // Queue email for each recipient (with inbox_id for provider resolution)
           for (const to of emailPayload.recipients) {
             executionCtx.waitUntil(
               env.EMAIL_QUEUE.send({
@@ -153,6 +153,7 @@ export async function dispatchNotifications(
                 subject: `${context.subjectPrefix} ${subjectDetail}`,
                 body: htmlBody,
                 sender_name: context.senderName,
+                inbox_id: inbox.id,
               }),
             );
           }

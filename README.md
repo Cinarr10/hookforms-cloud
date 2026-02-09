@@ -4,7 +4,7 @@
 
 <h1 align="center">HookForms Cloud</h1>
 
-<p align="center">One-click deployable webhook inbox with Gmail email forwarding — runs entirely on Cloudflare Workers. No servers, no Docker, no VPS needed.</p>
+<p align="center">One-click deployable webhook inbox with multi-channel notifications — runs entirely on Cloudflare Workers. Send form submissions to Discord, Slack, Teams, Telegram, email, and more. No servers, no Docker, no VPS needed.</p>
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/h1n054ur/hookforms-cloud)
 
@@ -13,17 +13,17 @@
 ## How It Works
 
 ```
-HTML Form  -->  POST /hooks/contact-form  -->  Cloudflare Worker  -->  Gmail notification
+HTML Form  -->  POST /hooks/contact-form  -->  Cloudflare Worker  -->  Discord, Slack, Email, ...
 ```
 
-Your form data hits a Cloudflare Worker, gets stored in D1, and an email notification is sent via Gmail through a Queue consumer. Everything runs on Cloudflare's edge — no origin server.
+Your form data hits a Cloudflare Worker, gets stored in D1, and notifications fire to all configured channels (Discord, Slack, email, etc.). Everything runs on Cloudflare's edge — no origin server.
 
 ## Architecture
 
 | Component | Cloudflare Service | Purpose |
 |---|---|---|
-| API | Workers | HTTP handling, routing |
-| Database | D1 | Inboxes, events, API keys |
+| API | Workers | HTTP handling, routing, notification dispatch |
+| Database | D1 | Inboxes, events, API keys, channels, providers |
 | Rate Limiting | KV | Per-IP request counters |
 | Email Queue | Queues | Async email delivery |
 | Token Storage | R2 | Gmail OAuth persistence |
@@ -50,7 +50,7 @@ bunx wrangler secret put ADMIN_API_KEY
 # Deploy
 bun run deploy
 
-# Run migrations
+# Run migrations (includes notification channels tables)
 bun run db:migrate
 ```
 
@@ -94,6 +94,37 @@ curl -X POST https://hookforms.YOUR_SUBDOMAIN.workers.dev/v1/hooks/inboxes \
 </form>
 ```
 
+### Add notification channels
+
+```bash
+# Send to Discord (auto-detected from URL)
+curl -X POST https://hookforms.YOUR_SUBDOMAIN.workers.dev/v1/hooks/inboxes/contact-form/channels \
+  -H "X-API-Key: YOUR_ADMIN_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"type": "webhook", "config": {"url": "https://discord.com/api/webhooks/123/abc"}}'
+
+# Send email via configured provider
+curl -X POST https://hookforms.YOUR_SUBDOMAIN.workers.dev/v1/hooks/inboxes/contact-form/channels \
+  -H "X-API-Key: YOUR_ADMIN_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"type": "email", "config": {"recipients": ["team@example.com"]}}'
+```
+
+Channel types are auto-detected from the URL. Supported: **Discord**, **Slack**, **Microsoft Teams**, **Telegram**, **ntfy**, **Webhook** (generic), and **Email**.
+
+### Email providers
+
+Configure a global email provider or override per-inbox. Supported: **Gmail** (OAuth), **Resend**, **SendGrid**.
+
+```bash
+curl -X PUT https://hookforms.YOUR_SUBDOMAIN.workers.dev/v1/hooks/config/email-provider \
+  -H "X-API-Key: YOUR_ADMIN_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"type": "resend", "config": {"api_key": "re_..."}}'
+```
+
+If no provider is configured, HookForms falls back to Gmail via environment secrets (the v1 behavior).
+
 ## API Reference
 
 Same API surface as [hookforms](https://github.com/h1n054ur/hookforms#api-reference).
@@ -114,6 +145,13 @@ Same API surface as [hookforms](https://github.com/h1n054ur/hookforms#api-refere
 | `PATCH` | `/v1/hooks/inboxes/{slug}` | Update inbox |
 | `DELETE` | `/v1/hooks/inboxes/{slug}` | Delete inbox |
 | `GET` | `/v1/hooks/{slug}/events` | List events |
+| `POST` | `/v1/hooks/inboxes/{slug}/channels` | Add notification channel |
+| `GET` | `/v1/hooks/inboxes/{slug}/channels` | List channels |
+| `PATCH` | `/v1/hooks/inboxes/{slug}/channels/{id}` | Update channel |
+| `DELETE` | `/v1/hooks/inboxes/{slug}/channels/{id}` | Remove channel |
+| `GET` | `/v1/hooks/config/email-provider` | Get email provider config |
+| `PUT` | `/v1/hooks/config/email-provider` | Set email provider |
+| `DELETE` | `/v1/hooks/config/email-provider` | Remove email provider |
 | `POST` | `/v1/auth/keys` | Create API key (admin) |
 | `GET` | `/v1/auth/keys` | List API keys (admin) |
 | `DELETE` | `/v1/auth/keys/{id}` | Revoke API key (admin) |

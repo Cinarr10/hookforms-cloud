@@ -11,6 +11,7 @@ export { buildWebhookPayload } from './webhook';
 export { buildEmailPayload } from './email';
 export type { EmailPayload } from './email';
 
-// Detection and dispatching
+// Detection, validation, and dispatching
 export { detectChannelType } from './detect';
+export { validateChannelConfig, validateProviderConfig, suggestChannelType } from './validate';
 export { dispatchNotifications } from './dispatcher';

@@ -4,7 +4,8 @@ import type { Env, EmailJob } from './types';
 import { rateLimitMiddleware } from './middleware/rate-limit';
 import { webhooks, publicWebhooks } from './routes/webhooks';
 import { auth } from './routes/auth';
-import { sendEmail } from './services/gmail';
+import { channels } from './routes/channels';
+import { resolveEmailProvider, GmailProvider } from './providers';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -41,6 +42,8 @@ app.route('/', publicWebhooks);
 
 // Authenticated routes
 app.route('/v1/hooks', webhooks);
+app.route('/v1/hooks', channels);  // /v1/hooks/inboxes/:slug/channels
+app.route('/v1', channels);        // /v1/config/email-provider
 app.route('/v1/auth', auth);
 
 // 404
@@ -57,12 +60,32 @@ app.onError((err, c) => {
 export default {
   fetch: app.fetch,
 
-  // Queue consumer: send emails
+  // Queue consumer: send emails via resolved provider
   async queue(batch: MessageBatch<EmailJob>, env: Env): Promise<void> {
+    // Cache providers per inbox to avoid repeated DB lookups within a batch
+    const providerCache = new Map<string, Awaited<ReturnType<typeof resolveEmailProvider>>>();
+
     for (const msg of batch.messages) {
       try {
         const job = msg.body;
-        await sendEmail(env, job.to, job.subject, job.body, job.sender_name);
+
+        // Resolve provider: inbox-specific -> global -> env Gmail
+        const cacheKey = job.inbox_id || '__env__';
+        let provider = providerCache.get(cacheKey);
+        if (provider === undefined) {
+          provider = job.inbox_id
+            ? await resolveEmailProvider(env, job.inbox_id)
+            : GmailProvider.fromEnv(env);
+          providerCache.set(cacheKey, provider);
+        }
+
+        if (!provider) {
+          console.error(`No email provider available for inbox ${job.inbox_id || 'env'}`);
+          msg.ack(); // Don't retry if no provider configured
+          continue;
+        }
+
+        await provider.sendEmail(job.to, job.subject, job.body, job.sender_name);
         msg.ack();
       } catch (err) {
         console.error('Email send failed:', err);
