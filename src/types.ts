@@ -51,3 +51,85 @@ export interface EmailJob {
   body: string;
   sender_name?: string;
 }
+
+export type ChannelType = 'email' | 'discord' | 'slack' | 'teams' | 'telegram' | 'ntfy' | 'webhook';
+
+export interface NotificationChannel {
+  id: string;
+  inbox_id: string;
+  type: ChannelType;
+  label: string | null;
+  config: string; // JSON string in D1
+  is_active: number;
+  created_at: string;
+}
+
+export type EmailProviderType = 'gmail' | 'resend' | 'sendgrid' | 'smtp';
+
+export interface EmailProviderRecord {
+  id: string;
+  inbox_id: string | null; // null = global default
+  type: EmailProviderType;
+  config: string; // JSON string in D1
+  is_active: number;
+  created_at: string;
+}
+
+// Parsed config shapes for each channel type
+export interface DiscordChannelConfig {
+  webhook_url: string;
+}
+
+export interface SlackChannelConfig {
+  webhook_url: string;
+}
+
+export interface TeamsChannelConfig {
+  webhook_url: string;
+}
+
+export interface TelegramChannelConfig {
+  bot_url: string; // https://api.telegram.org/bot<TOKEN>/sendMessage
+  chat_id: string;
+}
+
+export interface NtfyChannelConfig {
+  url: string; // https://ntfy.sh/<topic> or self-hosted
+  priority?: number;
+}
+
+export interface WebhookChannelConfig {
+  url: string;
+  custom_headers?: Record<string, string>;
+}
+
+export interface EmailChannelConfig {
+  recipients: string[];
+}
+
+// Email provider config shapes
+export interface GmailProviderConfig {
+  client_id: string;
+  client_secret: string;
+  refresh_token: string;
+  sender_email: string;
+}
+
+export interface ResendProviderConfig {
+  api_key: string;
+  from_email: string;
+}
+
+export interface SendGridProviderConfig {
+  api_key: string;
+  from_email: string;
+}
+
+export interface SmtpProviderConfig {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  use_tls: boolean;
+  from_email: string;
+}
