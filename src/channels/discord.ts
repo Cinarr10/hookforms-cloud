@@ -1,5 +1,6 @@
 import type { DiscordChannelConfig } from '../types';
 import type { ChannelPayload, ChannelContext } from './base';
+import { formatValue } from '../services/format-value';
 
 /**
  * Discord channel adapter
@@ -14,11 +15,14 @@ export function buildDiscordPayload(
     .filter(([k]) => k !== 'cf-turnstile-response' && k !== 'raw');
 
   // Build Discord embed fields
-  const fields = filteredBody.map(([k, v]) => ({
-    name: k.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-    value: String(v).substring(0, 1024),
-    inline: String(v).length < 50,
-  }));
+  const fields = filteredBody.map(([k, v]) => {
+    const formatted = formatValue(v, 1024);
+    return {
+      name: k.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+      value: formatted.substring(0, 1024),
+      inline: formatted.length < 50,
+    };
+  });
 
   const embed = {
     title: `${context.subjectPrefix} New Submission`,

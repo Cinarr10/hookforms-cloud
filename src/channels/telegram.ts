@@ -1,5 +1,6 @@
 import type { TelegramChannelConfig } from '../types';
 import type { ChannelPayload, ChannelContext } from './base';
+import { formatValue } from '../services/format-value';
 
 /**
  * Telegram channel adapter
@@ -18,7 +19,7 @@ export function buildTelegramPayload(
   const fields = filteredBody
     .map(([k, v]) => {
       const fieldName = k.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-      return `<b>${fieldName}:</b> ${String(v)}`;
+      return `<b>${fieldName}:</b> ${formatValue(v)}`;
     })
     .join('\n');
 

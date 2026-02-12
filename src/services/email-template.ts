@@ -1,3 +1,5 @@
+import { formatValue } from './format-value';
+
 /**
  * Build the HTML email body from form fields.
  */
@@ -15,7 +17,7 @@ export function buildEmailHtml(
   for (const [key, val] of Object.entries(body)) {
     if (skipKeys.has(key) || !val) continue;
     const label = escape(key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()));
-    const value = escape(String(val));
+    const value = escape(formatValue(val));
     fieldRows += `<tr>
       <td style="padding:10px 14px;font-weight:600;color:#555;white-space:nowrap;vertical-align:top;border-bottom:1px solid #eee;">${label}</td>
       <td style="padding:10px 14px;color:#222;border-bottom:1px solid #eee;">${value}</td>

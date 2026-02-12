@@ -1,5 +1,6 @@
 import type { SlackChannelConfig } from '../types';
 import type { ChannelPayload, ChannelContext } from './base';
+import { formatValue } from '../services/format-value';
 
 /**
  * Slack channel adapter
@@ -14,7 +15,7 @@ export function buildSlackPayload(
     .filter(([k]) => k !== 'cf-turnstile-response' && k !== 'raw');
 
   // Build Slack mrkdwn lines
-  const lines = filteredBody.map(([k, v]) => `*${k.replace(/_/g, ' ')}:* ${v}`);
+  const lines = filteredBody.map(([k, v]) => `*${k.replace(/_/g, ' ')}:* ${formatValue(v)}`);
 
   const payload = {
     text: `${context.subjectPrefix} New Submission`,

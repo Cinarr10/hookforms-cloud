@@ -1,5 +1,6 @@
 import type { NtfyChannelConfig } from '../types';
 import type { ChannelPayload, ChannelContext } from './base';
+import { formatValue } from '../services/format-value';
 
 /**
  * Ntfy channel adapter
@@ -16,7 +17,7 @@ export function buildNtfyPayload(
   // Build plain text body
   const lines = filteredBody.map(([k, v]) => {
     const fieldName = k.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-    return `${fieldName}: ${v}`;
+    return `${fieldName}: ${formatValue(v)}`;
   });
 
   const body = lines.join('\n');

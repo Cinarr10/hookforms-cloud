@@ -1,5 +1,6 @@
 import type { TeamsChannelConfig } from '../types';
 import type { ChannelPayload, ChannelContext } from './base';
+import { formatValue } from '../services/format-value';
 
 /**
  * Microsoft Teams channel adapter
@@ -16,7 +17,7 @@ export function buildTeamsPayload(
   // Build Adaptive Card FactSet
   const facts = filteredBody.map(([k, v]) => ({
     title: k.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-    value: String(v),
+    value: formatValue(v),
   }));
 
   const adaptiveCard = {

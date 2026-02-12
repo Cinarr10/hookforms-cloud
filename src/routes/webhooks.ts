@@ -4,6 +4,7 @@ import { requireScope } from '../middleware/auth';
 import { verifyTurnstile } from '../services/turnstile';
 import { buildEmailHtml } from '../services/email-template';
 import { dispatchNotifications } from '../channels/dispatcher';
+import { formatValue } from '../services/format-value';
 
 const webhooks = new Hono<{ Bindings: Env }>();
 
@@ -131,11 +132,14 @@ publicWebhooks.all('/hooks/:slug', async (c) => {
         if (isDiscord) {
           const fields = Object.entries(body)
             .filter(([k, v]) => v && k !== 'cf-turnstile-response')
-            .map(([k, v]) => ({
-              name: k.replace(/_/g, ' ').replace(/\b\w/g, (ch: string) => ch.toUpperCase()),
-              value: String(v).substring(0, 1024),
-              inline: String(v).length < 50,
-            }));
+            .map(([k, v]) => {
+              const formatted = formatValue(v, 1024);
+              return {
+                name: k.replace(/_/g, ' ').replace(/\b\w/g, (ch: string) => ch.toUpperCase()),
+                value: formatted.substring(0, 1024),
+                inline: formatted.length < 50,
+              };
+            });
           forwardBody = JSON.stringify({
             embeds: [{
               title: `${inbox.email_subject_prefix || `[${slug}]`} New Submission`,
@@ -148,7 +152,7 @@ publicWebhooks.all('/hooks/:slug', async (c) => {
         } else if (isSlack) {
           const lines = Object.entries(body)
             .filter(([k, v]) => v && k !== 'cf-turnstile-response')
-            .map(([k, v]) => `*${k.replace(/_/g, ' ')}:* ${v}`);
+            .map(([k, v]) => `*${k.replace(/_/g, ' ')}:* ${formatValue(v)}`);
           forwardBody = JSON.stringify({
             text: `${inbox.email_subject_prefix || `[${slug}]`} New Submission`,
             blocks: [{
