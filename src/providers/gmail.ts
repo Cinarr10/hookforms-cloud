@@ -8,9 +8,19 @@ interface TokenResponse {
 }
 
 /**
+ * Module-level access token cache.
+ * Shared across all GmailProvider instances within the same worker invocation.
+ * Access tokens last ~3600s; we cache with a 5-minute safety margin.
+ */
+const tokenCache = new Map<string, { token: string; expiresAt: number }>();
+
+/**
  * Gmail email provider using OAuth2 refresh token flow.
  * Works with both stored config (from email_providers table) and
  * environment secrets (legacy fallback).
+ *
+ * Caches access tokens in memory to avoid hammering Google's OAuth endpoint
+ * on every email send (which can trigger token revocation).
  */
 export class GmailProvider implements EmailProvider {
   readonly type = 'gmail';
@@ -48,7 +58,18 @@ export class GmailProvider implements EmailProvider {
     });
   }
 
+  /** Cache key based on client_id + refresh_token prefix (unique per credential set) */
+  private get cacheKey(): string {
+    return `${this.clientId}:${this.refreshToken.slice(0, 16)}`;
+  }
+
   private async getAccessToken(): Promise<string> {
+    // Check cache first
+    const cached = tokenCache.get(this.cacheKey);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.token;
+    }
+
     const resp = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -66,6 +87,11 @@ export class GmailProvider implements EmailProvider {
     }
 
     const data = (await resp.json()) as TokenResponse;
+
+    // Cache with 5-minute safety margin (tokens typically last 3600s)
+    const expiresAt = Date.now() + (data.expires_in - 300) * 1000;
+    tokenCache.set(this.cacheKey, { token: data.access_token, expiresAt });
+
     return data.access_token;
   }
 

@@ -6,6 +6,8 @@ import { webhooks, publicWebhooks } from './routes/webhooks';
 import { auth } from './routes/auth';
 import { channels } from './routes/channels';
 import { resolveEmailProvider, GmailProvider } from './providers';
+import { requireScope } from './middleware/auth';
+import { buildEmailHtml } from './services/email-template';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -35,6 +37,86 @@ app.get('/health', async (c) => {
     version: '0.1.0',
     checks: { d1: dbStatus },
   });
+});
+
+// ---------------------------------------------------------------------------
+// Admin diagnostic: test Gmail OAuth + send test email
+// ---------------------------------------------------------------------------
+app.get('/v1/diag/gmail', requireScope('admin'), async (c) => {
+  const checks: Record<string, unknown> = {
+    has_client_id: !!c.env.GMAIL_CLIENT_ID,
+    has_client_secret: !!c.env.GMAIL_CLIENT_SECRET,
+    has_refresh_token: !!c.env.GMAIL_REFRESH_TOKEN,
+    has_sender_email: !!c.env.GMAIL_SENDER_EMAIL,
+    sender_email: c.env.GMAIL_SENDER_EMAIL || null,
+  };
+
+  if (c.env.GMAIL_CLIENT_ID && c.env.GMAIL_CLIENT_SECRET && c.env.GMAIL_REFRESH_TOKEN) {
+    try {
+      const resp = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: c.env.GMAIL_CLIENT_ID,
+          client_secret: c.env.GMAIL_CLIENT_SECRET,
+          refresh_token: c.env.GMAIL_REFRESH_TOKEN,
+          grant_type: 'refresh_token',
+        }),
+      });
+      const text = await resp.text();
+      checks.token_refresh_status = resp.status;
+      if (resp.ok) {
+        const data = JSON.parse(text);
+        checks.token_refresh = 'success';
+        checks.token_type = data.token_type;
+        checks.expires_in = data.expires_in;
+      } else {
+        checks.token_refresh = 'failed';
+        checks.token_refresh_error = text;
+      }
+    } catch (err) {
+      checks.token_refresh = 'error';
+      checks.token_refresh_error = String(err);
+    }
+  } else {
+    checks.token_refresh = 'skipped - missing credentials';
+  }
+
+  return c.json({ data: checks });
+});
+
+app.post('/v1/diag/test-email', requireScope('admin'), async (c) => {
+  const body = await c.req.json<{ to?: string }>();
+  const to = body.to || c.env.GMAIL_SENDER_EMAIL || '';
+
+  if (!to) {
+    return c.json({ error: { code: 400, message: 'No recipient - provide "to" or set GMAIL_SENDER_EMAIL' } }, 400);
+  }
+
+  try {
+    const provider = GmailProvider.fromEnv(c.env);
+    if (!provider) {
+      return c.json({ error: { code: 500, message: 'Gmail not configured in env' } }, 500);
+    }
+
+    const htmlBody = buildEmailHtml('diag-test', {
+      name: 'Diagnostic Test',
+      email: 'diag@hookforms.dev',
+      message: `This is a test email sent at ${new Date().toISOString()} to verify Gmail OAuth is working.`,
+    }, 'HookForms Diagnostic');
+
+    await provider.sendEmail(to, '[HookForms Diag] Test Email', htmlBody, 'HookForms Diagnostic');
+
+    return c.json({ data: { status: 'sent', to } });
+  } catch (err) {
+    return c.json({
+      error: {
+        code: 500,
+        message: 'Email send failed',
+        detail: String(err),
+      },
+    }, 500);
+  }
 });
 
 // Public webhook receiver (no auth)

@@ -7,11 +7,22 @@ interface TokenResponse {
 }
 
 /**
- * Get a fresh Gmail access token using the refresh token stored in secrets.
+ * Module-level access token cache to avoid hammering Google's OAuth endpoint.
+ * Excessive token refresh requests can trigger Google to revoke the refresh token.
+ */
+let cachedToken: { token: string; expiresAt: number } | null = null;
+
+/**
+ * Get a Gmail access token, using a cached value if still valid.
  */
 async function getAccessToken(env: Env): Promise<string> {
   if (!env.GMAIL_CLIENT_ID || !env.GMAIL_CLIENT_SECRET || !env.GMAIL_REFRESH_TOKEN) {
     throw new Error('Gmail credentials not configured');
+  }
+
+  // Return cached token if still valid (with 5-minute safety margin)
+  if (cachedToken && Date.now() < cachedToken.expiresAt) {
+    return cachedToken.token;
   }
 
   const resp = await fetch('https://oauth2.googleapis.com/token', {
@@ -31,6 +42,13 @@ async function getAccessToken(env: Env): Promise<string> {
   }
 
   const data = (await resp.json()) as TokenResponse;
+
+  // Cache with 5-minute safety margin (tokens typically last 3600s)
+  cachedToken = {
+    token: data.access_token,
+    expiresAt: Date.now() + (data.expires_in - 300) * 1000,
+  };
+
   return data.access_token;
 }
 
