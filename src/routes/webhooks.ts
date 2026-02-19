@@ -213,6 +213,31 @@ publicWebhooks.get('/demo/events', async (c) => {
     return c.json({ data: [] });
   }
 
+  // If ?id= is provided, return only that single event (prevents leaking other users' data)
+  const eventId = c.req.query('id');
+  if (eventId) {
+    const event = await c.env.DB.prepare(
+      'SELECT id, method, body, received_at FROM webhook_events WHERE id = ? AND inbox_id = ?',
+    )
+      .bind(eventId, inbox.id)
+      .first<Record<string, unknown>>();
+
+    if (!event) {
+      return c.json({ data: [] });
+    }
+
+    return c.json({
+      data: [
+        {
+          id: event.id,
+          method: event.method,
+          body: event.body ? JSON.parse(event.body as string) : null,
+          received_at: event.received_at,
+        },
+      ],
+    });
+  }
+
   const results = await c.env.DB.prepare(
     'SELECT id, method, body, received_at FROM webhook_events WHERE inbox_id = ? ORDER BY received_at DESC LIMIT 5',
   )
@@ -405,6 +430,38 @@ webhooks.get('/:slug/events', requireScope('webhooks'), async (c) => {
   }));
 
   return c.json({ data: items, meta: { total: total?.count || 0, limit, offset } });
+});
+
+webhooks.get('/:slug/events/:eventId', requireScope('webhooks'), async (c) => {
+  const slug = c.req.param('slug');
+  const eventId = c.req.param('eventId');
+
+  const inbox = await c.env.DB.prepare('SELECT id FROM webhook_inboxes WHERE slug = ?')
+    .bind(slug)
+    .first<{ id: string }>();
+
+  if (!inbox) {
+    return c.json({ error: { code: 404, message: 'Inbox not found' } }, 404);
+  }
+
+  const event = await c.env.DB.prepare(
+    'SELECT * FROM webhook_events WHERE id = ? AND inbox_id = ?',
+  )
+    .bind(eventId, inbox.id)
+    .first<Record<string, unknown>>();
+
+  if (!event) {
+    return c.json({ error: { code: 404, message: 'Event not found' } }, 404);
+  }
+
+  return c.json({
+    data: {
+      ...event,
+      headers: JSON.parse(event.headers as string),
+      body: event.body ? JSON.parse(event.body as string) : null,
+      query_params: JSON.parse(event.query_params as string),
+    },
+  });
 });
 
 export { webhooks, publicWebhooks };
